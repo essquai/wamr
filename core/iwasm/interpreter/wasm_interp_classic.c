@@ -1934,7 +1934,7 @@ wasm_interp_call_func_bytecode(WASMModuleInstance *module,
                             prev_frame->sp++;
 
                             /* mark frame as raised exception */
-                            wasm_set_exception(module,
+                            wasm_set_exception_local(module,
                                                "uncaught wasm exception");
 
                             /* end of function, treat as WASM_OP_RETURN */
@@ -6729,7 +6729,7 @@ wasm_interp_call_func_bytecode(WASMModuleInstance *module,
                 if (has_exception
                     && strstr(uncaught_exception,
                               "exception thrown by stdc++")) {
-                    wasm_set_exception(module, NULL);
+                    wasm_set_exception_local(module, NULL);
 
                     /* setup internal c++ rethrow */
                     exception_tag_index = 0;
@@ -6740,7 +6740,7 @@ wasm_interp_call_func_bytecode(WASMModuleInstance *module,
                  * "uncaught wasm exception" trap */
                 if (has_exception
                     && strstr(uncaught_exception, "uncaught wasm exception")) {
-                    wasm_set_exception(module, NULL);
+                    wasm_set_exception_local(module, NULL);
                     exception_tag_index = POP_I32();
 
                     /* rethrow the exception into that frame */
@@ -6855,9 +6855,14 @@ wasm_interp_call_func_bytecode(WASMModuleInstance *module,
         RECOVER_CONTEXT(prev_frame);
 #if WASM_ENABLE_EXCE_HANDLING != 0
         if (wasm_get_exception(module)) {
-            wasm_set_exception(module, NULL);
-            exception_tag_index = POP_I32();
-            goto find_a_catch_handler;
+            char exc[128] = { 0 };
+            wasm_copy_exception(module, exc);
+            if (strstr(exc, "uncaught wasm exception")) {
+                wasm_set_exception_local(module, NULL);
+                exception_tag_index = POP_I32();
+                goto find_a_catch_handler;
+            }
+            goto got_exception;   /* a real trap, e.g. from another thread */
         }
 #endif
         HANDLE_OP_END();

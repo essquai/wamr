@@ -3069,7 +3069,7 @@ wasm_runtime_get_exec_env_singleton(WASMModuleInstanceCommon *module_inst_comm)
     return module_inst->exec_env_singleton;
 }
 
-static void
+void
 wasm_set_exception_local(WASMModuleInstance *module_inst, const char *exception)
 {
     exception_lock(module_inst);

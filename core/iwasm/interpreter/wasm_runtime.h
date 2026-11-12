@@ -603,6 +603,9 @@ void
 wasm_set_exception(WASMModuleInstance *module, const char *exception);
 
 void
+wasm_set_exception_local(WASMModuleInstance *module_inst, const char *exception);
+
+void
 wasm_set_exception_with_id(WASMModuleInstance *module_inst, uint32 id);
 
 const char *
